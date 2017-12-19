@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  author: Sitewards
+  description: Manage a Magento 2 release
+  license: OSL-3.-
+  min_ansible_version: 2.4
+  platforms:
+  - name: Ubuntu
+    versions:
+    - xenial
+  galaxy_tags:
+  - magento2
+  - php
+
+dependencies: []
