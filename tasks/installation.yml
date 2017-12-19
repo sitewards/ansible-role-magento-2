@@ -1,0 +1,222 @@
+---
+# The install process creates a zero delay release. It works roughly as follows:
+# 1. Pull down the release
+# 2. Unpack it
+# 3. Set any state that it needs (env.php, for example)
+# 4. Move it to the release dir
+# 5. Update the currently deployed application to the new application
+#
+# Other files in this playbook then handle database migrations.
+
+- name: "Determine if the release already exists"
+  stat:
+    path: "{{ magento_release_folder }}/{{ magento_release_version }}"
+  register: "magento_release_stat"
+
+# If cron executes Magento during release, it can create sessions / cache and break stuff
+- name: "Ensure the cron is disabled"
+  cron:
+    name: "{{ item.name }}"
+    user: "{{ magento_user }}"
+    minute: "{{ item.minute }}"
+    hour: "{{ item.hour }}"
+    day: "{{ item.day }}"
+    month: "{{ item.month }}"
+    job: "{{ magento_cron_invoker }} {{ item.job }}; {{ magento_cron_responder }}"
+    disabled: "yes"
+  with_items: "{{ magento_cron_tasks }}"
+
+- name: "Get the magento filename from the storage path"
+  set_fact:
+    magento_file_name: "{{ magento_storage_path | basename }}"
+  when:
+    - not magento_release_stat.stat.exists
+    - magento_skip_release == False
+
+- name: "Create a workdir for the release"
+  tempfile:
+    state: "directory"
+    prefix: "magento-release."
+  register: "tmpdir"
+  when:
+    - not magento_release_stat.stat.exists
+    - magento_skip_release == False
+
+- name: "Set the workdir for later tasks"
+  set_fact:
+    magento_workdir: "{{ tmpdir.path }}"
+  when:
+    - not magento_release_stat.stat.exists
+    - magento_skip_release == False
+
+# The AWS S3 ansible role is deliberately not used, as it does not handle multipart uploads well.
+# See https://github.com/ansible/ansible/issues/5442
+#
+# This expects to authenticat based on the invokers AWS credentials, supplied through environment variables
+- name: "Download Magento release"
+  shell: |
+      AWS_ACCESS_KEY_ID="{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}" \
+      AWS_SECRET_ACCESS_KEY="{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}" \
+      aws s3 cp s3://{{ magento_bucket_name }}/{{ magento_storage_path }} {{ magento_workdir }} \
+        --cli-read-timeout 300 \
+        --cli-connect-timeout 0
+  args:
+    creates: "{{ magento_workdir }}/{{ magento_file_name }}"
+  when:
+    - not magento_release_stat.stat.exists
+    - magento_skip_release == False
+
+- name: "Unpack the release"
+  unarchive:
+    src: "{{ magento_workdir }}/{{ magento_file_name }}"
+    dest: "{{ magento_workdir }}"
+    remote_src: true
+  when:
+    - not magento_release_stat.stat.exists
+    - magento_skip_release == False
+
+- name: "Clean up the downloaded archive"
+  file:
+    path: "{{ magento_workdir }}/{{ magento_file_name }}"
+    state: "absent"
+  when:
+    - not magento_release_stat.stat.exists
+    - magento_skip_release == False
+
+- name: "Set the permission on the release"
+  shell: "chown -R {{ magento_user }}:{{ magento_group }} {{ magento_workdir }}"
+  when:
+    - not magento_release_stat.stat.exists
+    - magento_skip_release == False
+
+- name: "Move the release to the releases folder"
+  shell: "mv {{ magento_workdir }} {{ magento_release_folder }}/{{ magento_release_version }}"
+  args:
+    creates: "{{ magento_release_folder }}/{{ magento_release_version }}"
+    removes: "{{ magento_workdir }}"
+  when:
+    - not magento_release_stat.stat.exists
+    - magento_skip_release == False
+
+- name: "Generate env.php"
+  template:
+    src: "etc/env.php.j2"
+    dest: "{{ magento_config_folder }}/env.php"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    mode: "u=rw,g=,o="
+
+- name: "Enable maintenance mode"
+  file:
+    path: "{{ magento_release_folder }}/{{ magento_release_version }}/var/.maintenance.flag"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    state: "touch"
+  when:
+    - magento_skip_release == False
+
+- name: "Release the application"
+  file:
+    src: "{{ magento_release_folder }}/{{ magento_release_version }}"
+    force: "yes"
+    path: "{{ magento_app_root }}"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    state: "link"
+  register: "magento_release_updated"
+  when:
+    - magento_skip_release == False
+
+- name: "Ensure the source content exists"
+  file:
+    path: "{{ item.src }}"
+    state: "{{ item.type | default('directory') }}"
+    owner: "{{ item.owner | default(magento_user) }}"
+    group: "{{ item.group | default(magento_group) }}"
+    mode: "{{ item.mode | default('755') }}"
+  with_items: "{{ magento_shared_folders }}"
+
+# This catches a condition in which the destionation path will be in a folder that currently does not exist. Symlinks
+# cannot be created in directories that do not exist yet. An example of this would be
+#
+# var/sitewards/path/to/resource
+#
+# where "sitewards/path/to" does not exist.
+- name: "Ensure the destion container directories exist"
+  file:
+    path: "{{ item.dest | dirname }}"
+    state: "directory"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+  with_items: "{{ magento_shared_folders }}"
+  # We do not want to overwrite any resources that already exist (such as the symlink to /var/www/html). However, if
+  # the resource does not exist, we need to create it. Thus, we attempt its creation, but ignore failures.
+  failed_when: false
+
+- name: "Delete the destinations if they exist"
+  file:
+    path: "{{ item.dest }}"
+    state: "absent"
+  with_items: "{{ magento_shared_folders }}"
+
+- name: "Ensure the symlinks for the shared content exist"
+  file:
+    src: "{{ item.src }}"
+    path: "{{ item.dest }}"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    state: link
+  with_items: "{{ magento_shared_folders }}"
+
+- name: "Reload the PHP runtime"
+  service:
+    name: "{{ magento_php_service }}"
+    state: "restarted"
+  when:
+    - magento_release_updated.changed
+    - magento_skip_release == False
+
+- name: "Perform any schema upgrades that are required"
+  become: "yes"
+  become_user: "{{ magento_user }}"
+  # "--keep-generated" is used as it's the responsibility of the build environment to do the application compilation.
+  command: "/usr/bin/php {{ magento_app_root }}/bin/magento {{ item }}"
+  with_items: "{{ magento_upgrade_commands }}"
+
+- name: "Enforce core configuration data"
+  shell:
+    cmd: |
+      mysql --user="{{ magento_config_db.username }}" --password="{{ magento_config_db.password }}" --database="{{ magento_config_db.name }}" --host="{{ magento_config_db.host }}" <<EOF
+        UPDATE core_config_data
+          SET value = '{{ item.value | regex_replace('\[\[', '{{') | regex_replace('\]\]', '}}') }}'
+          WHERE path = '{{ item.path }}' AND
+            scope = '{{ item.scope }}' AND
+            scope_id = {{ item.scope_id }};
+      EOF
+  with_items: "{{ magento_core_config_data }}"
+
+- name: "Flush the Magento caches"
+  become: "yes"
+  become_user: "{{ magento_user }}"
+  command: "/usr/bin/php {{ magento_app_root }}/bin/magento cache:flush"
+
+- name: "Disable maintenance mode"
+  file:
+    path: "{{ magento_release_folder }}/{{ magento_release_version }}/var/.maintenance.flag"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    state: "absent"
+  when:
+    - magento_skip_release == False
+
+- name: "Ensure the cron job is enabled"
+  cron:
+    name: "{{ item.name }}"
+    user: "{{ magento_user }}"
+    minute: "{{ item.minute }}"
+    hour: "{{ item.hour }}"
+    day: "{{ item.day }}"
+    month: "{{ item.month }}"
+    job: "{{ magento_cron_invoker }} {{ item.job }}; {{ magento_cron_responder }}"
+    disabled: "no"
+  with_items: "{{ magento_cron_tasks }}"

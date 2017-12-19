@@ -1,0 +1,13 @@
+---
+# This task is required to create admin users, or update their passwords if they already exist.
+- name: "Create the admin users"
+  become: "yes"
+  become_user: "{{ magento_user }}"
+  command: |
+    /usr/bin/php {{ magento_app_root }}/bin/magento admin:user:create \
+      --admin-user="{{ item.username }}" \
+      --admin-password="{{ item.password }}" \
+      --admin-email="{{ item.email }}" \
+      --admin-firstname="{{ item.first_name }}" \
+      --admin-lastname="{{ item.last_name }}"
+  with_items: "{{ magento_admin_users }}"

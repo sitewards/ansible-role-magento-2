@@ -1,0 +1,5 @@
+---
+- include: "dependencies.yml"
+- include: "setup.yml"
+- include: "installation.yml"
+- include: "admin.yml"

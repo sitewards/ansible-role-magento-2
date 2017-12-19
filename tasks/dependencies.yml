@@ -1,0 +1,10 @@
+---
+- name: "Install pip, so that python dependencies can be further managed"
+  package:
+    name: "python3-pip"
+    state: "present"
+
+- name: "Install the AWS CLI to access S3"
+  pip:
+    name: "awscli"
+    state: "latest"

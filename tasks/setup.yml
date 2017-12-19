@@ -1,0 +1,27 @@
+---
+# This file is about making sure that the requirements exist on the filesystem for Magento to be successfully released.
+- name: "Ensure the releases folder exists"
+  file:
+    path: "{{ magento_release_folder }}"
+    state: "directory"
+    recurse: "yes"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    mode: "u=rwx,g=rx,o=rx"
+  when:
+    - magento_skip_release == False
+
+- name: "Check the state of the app root node"
+  stat:
+    path: "{{ magento_app_root }}"
+  register: "magento_app_root_stat"
+  when:
+    - magento_skip_release == False
+
+- name: "Ensure the app root folder does not exist, as it will be a symlink"
+  file:
+    path: "{{ magento_app_root }}/"
+    state: "absent"
+  when:
+    - magento_skip_release == False
+    - magento_app_root_stat.stat.exists and magento_app_root_stat.stat.islnk == false

@@ -1,0 +1,281 @@
+---
+## The AWS S3 bucket that contains the tarball releases of Magento
+## (Required)
+# magento_bucket_name:
+
+## The full path to the release in S3. For example, if the release is at "s3://foo-bar-bar/foo/bar.tar.gz", than the
+## the full path is "foo/bar.tar.gz"
+## (Required)
+# magento_storage_path:
+
+## The magento release folder. Contains the current set of releases
+## (Required)
+# magento_release_folder:
+
+## The release version, distinct form the core Magento version. The release version is usually what the git repository
+## containing the application is tagged with.
+## (Required)
+# magento_release_version:
+
+## Where the environment configuratoin is to be stored.
+## Defaults in the current release app/etc/"
+magento_config_folder: "{{ magento_release_folder }}/{{ magento_release_version }}/app/etc/"
+
+## The path that apache is pointed at to serve requested.
+magento_app_root: "/var/www/html"
+
+## The unix user that will own the files on the disk
+magento_user: "www-data"
+
+## the unix group that will own the files on the disk
+magento_group: "www-data"
+
+## The name for the service that executes magento. When the application is updated, the PHP runtime must be reset so that
+## any data that's in the opcache.
+magento_php_service: "php7.0-fpm"
+
+## Whether or not to skip the release section of Magento 2. Note: THe configuration and env.php file will still be
+## overrideen; just the installation itself will not be managed.
+magento_skip_release: False
+
+## A series of core configuration data that should be enforced with the deployment.
+## Takes an array objects as follows:
+##
+##  [
+##    {
+##      path: <string>,
+##      scope: <string>,
+##      scope_id: <string>,
+##      value: <string>
+##    },
+##    ...
+## ]
+##
+## Can be used for setting base URLs, etc.
+magento_core_config_data: [""]
+
+## Administrative users to add to the environment. An example is documented below the configuration
+magento_admin_users: []
+#  - username: "admin"
+#    password: "test1234"
+#    email: "admin-test@sitewards.net"
+#    first_name: "Test"
+#    last_name: "Password
+
+## An invoker is a process that's responsible for starting and running cron task. It's useful for doing additional
+## collection around the stask, such as the collection of metrics or routing of logs. A good example is `systemd-cat`.
+magento_cron_invoker: ""
+
+## A responder is a simple command that runs immediately after the cron process. It's usually used for success checking
+## such as "echo \"{{ item.code }}_exit_code $?\" > /var/metrics/prometheus/{{ item.code }}"
+magento_cron_responder: ""
+
+## The cron jobs that Magento is expected to run.
+magento_cron_tasks:
+  - code: "magento_system_cron"
+    name: "Execute the Magento scheduled job runner"
+    minute: "*"
+    hour: "*"
+    day: "*"
+    month: "*"
+    job: "/usr/bin/php {{ magento_app_root }}/bin/magento cron:run"
+
+## A list of folders that contain content that should persist through releases.
+magento_shared_folders: []
+## Directories are defined in key -> value pairs, where the "src" is the directory that contains the content, and
+## "dest" is where it should exist in Magento. If the source directories do not exist, they are created.
+#  - src:
+#    dest:
+## State can be any of the ansible file states, but defaults to directory
+#    state: "directory"
+
+## The mode the application runs on. Broadly, there are three:
+##  - production - Used when a all resources have been generated
+##  - default - A safe, but badly optimized production
+##  - developer - Used to during development to decrease the response time to see changes
+##
+## See http://devdocs.magento.com/guides/v2.0/config-guide/bootstrap/magento-modes.html
+## (Required)
+magento_mode: "default"
+
+#magento_backend_frontname: "admin"
+#
+#magento_queue_amqp:
+#  host: "localhost"
+#  port: "5672"
+#  user: ""
+#  password: ""
+#  virtualhost: "/"
+#  ssl: ""
+
+## As part of the release process, Ansible can enforce certain configuration (such as base URLs and the like).
+## To do so, it needs to know which database to update.
+## This cannot be determined from the connections spec; it's determined here instead
+## (Required)
+#magento_config_db:
+#  username: ""
+#  password: ""
+#  host: ""
+#  name: ""
+
+## The database connections that contain the Magento data that Magento accesses
+## See http://devdocs.magento.com/guides/v2.0/config-guide/config/config-php.html
+## See http://devdocs.magento.com/guides/v2.0/config-guide/multi-master/multi-master_slavedb.html
+## At least "default" and "indexer" are required
+## (Required)
+#magento_db_connections:
+#  - type: "connection"
+#    databases:
+#      - type: "default"
+#        host: "127.0.0.1"
+#        name: "magento"
+#        username: "magento"
+#        password: ""
+#        model: "mysql4"
+#        engine: "innodb"
+#        init_statements: "SET NAMES utf8;"
+#        active: 1
+#        persistent: ""
+#      - type: "indexer"
+#        host: "127.0.0.1"
+#        name: "magento"
+#        username: "magento"
+#        password: ""
+#        model: "mysql4"
+#        engine: "innodb"
+#        init_statements: "SET NAMES utf8;"
+#        active: 1
+#        persistent: ""
+
+## The prefix used for Magento tables. Used for co-installing multiple Magento installations in the same
+## DB
+## See http://devdocs.magento.com/guides/v2.0/install-gde/install/cli/install-cli-install.html
+## (Required)
+magento_db_connection_table_prefix: ""
+
+## The install date of Magento. Used simply to determine whether the application is install. Of the form
+## "2017-07-27 10:31:13 CEST".
+## See http://devdocs.magento.com/guides/v2.0/config-guide/config/config-php.html
+## (Required)
+# magento_install_date: ""
+
+## The encryption key used for Magento's encryption/decryption operations.
+## See http://devdocs.magento.com/guides/v2.0/config-guide/config/config-php.html
+## (Reqired)
+# magento_crypt_key: ""
+
+magento_session_save: "files"
+
+## The options for the sesssion save object. In theory optional, but some save methods make it required.
+## See the example below for the required Redis configration options (for example)
+## (Optional)
+# magento_session_save_options:
+#  - type: "redis"
+#    options:
+#      - name: "break_after_adminhtml"
+#        value: "30"
+#      - name: "database"
+#        value: "2"
+#      - name: "port"
+#        value: "6379"
+#      - name: "compression_library"
+#        value: "gzip"
+#      - name: "max_concurrency"
+#        value: "6"
+#      - name: "first_lifetime"
+#        value: "600"
+#      - name: "bot_first_lifetime"
+#        value: "60"
+#      - name: "min_lifetime"
+#        value: "60"
+#      - name: "log_level"
+#        value: "1"
+#      - name: "compression_threshold"
+#        value: "2048"
+#      - name: "password"
+#        value: ""
+#      - name: "persistent_identifier"
+#        value: ""
+#      - name: "disable_locking"
+#        value: "0"
+#      - name: "max_lifetime"
+#        value: "2592000"
+#      - name: "timeout"
+#        value: "2.5"
+#      - name: "break_after_frontend"
+#        value: "5"
+#      - name: "host"
+#        value: "127.0.0.1"
+
+## The connection that will be used by default when making schema and data changes in the database
+## (Required)
+# magento_resource_default_setup_connection: "default"
+
+## Options for the X-FRAME-OPTIONS header that prevents embedding this page in an iframe.
+## See http://devdocs.magento.com/guides/v2.0/config-guide/secy/secy-xframe.html
+## See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+## (Required)
+magento_x_frame_options: "SAMEORIGIN"
+
+# magento_cache_frontend_page_cache_backend: "Cm_Cache_Backend_Redis"
+
+## (Required if magento_cache_frontend_page_cache_backend is used)
+# magento_cache_frontend_page_cache_backend_options:
+#   server: "127.0.0.1"
+#   port: 6379
+#   database: 1
+#   password: ""
+#   compress_data: 1
+
+# magento_cache_frontend_default_backend: Cm_Cache_Backend_Redis
+
+## (Required if magento_cache_frontend_default_backend is used)
+# magento_cache_frontend_default_backend_options:
+#   server: "127.0.0.1"
+#   port: 6379
+#   database: 0
+#   password: ""
+#   compress_data: "0"
+
+## The Varnish compatible hosts that are used to store the full page configuration
+## This appears to be undocumented, though is set with the CLI initially
+## (Optional)
+# magento_http_cache_hosts:
+#   - host: ""
+#     port: ""
+
+## Whether to use a given set of caches
+## See http://devdocs.magento.com/guides/v2.1/config-guide/config/config-php.html
+## (Optional)
+magento_cache_types:
+  - name: "config"
+    enabled: 1
+  - name: "layout"
+    enabled: 1
+  - name: "block_html"
+    enabled: 1
+  - name: "collections"
+    enabled: 1
+  - name: "reflection"
+    enabled: 1
+  - name: "db_ddl"
+    enabled: 1
+  - name: "eav"
+    enabled: 1
+  - name: "full_page"
+    enabled: 1
+  - name: "config_integration"
+    enabled: 1
+  - name: "config_integration_api"
+    enabled: 1
+  - name: "target_rule"
+    enabled: 1
+  - name: "translate"
+    enabled: 1
+  - name: "config_webservice"
+    enabled: 1
+
+## During the upgrade of Magneto, there are certain commands that must be run to ensure the database is up to date
+## and that content is successfully migrated. These commands are run every release, and are expected to be idempotent.
+magento_upgrade_commands:
+  - "setup:upgrade --keep-generated"
