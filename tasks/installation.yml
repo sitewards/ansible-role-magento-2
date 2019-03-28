@@ -187,11 +187,16 @@
   shell:
     cmd: |
       mysql --user="{{ magento_config_db.username }}" --password="{{ magento_config_db.password }}" --database="{{ magento_config_db.name }}" --host="{{ magento_config_db.host }}" <<EOF
-        UPDATE core_config_data
-          SET value = '{{ item.value | regex_replace('\[\[', '{{') | regex_replace('\]\]', '}}') }}'
-          WHERE path = '{{ item.path }}' AND
-            scope = '{{ item.scope }}' AND
-            scope_id = {{ item.scope_id }};
+        INSERT INTO core_config_data (path, scope, scope_id, value)
+          VALUES (
+             '{{ item.path }}',
+             '{{ item.scope }}',
+             {{ item.scope_id }},
+             '{{ item.value | regex_replace('\[\[', '{{') | regex_replace('\]\]', '}}') }}'
+          )
+          ON DUPLICATE KEY UPDATE
+             value = '{{ item.value | regex_replace('\[\[', '{{') | regex_replace('\]\]', '}}') }}'
+          ;
       EOF
   with_items: "{{ magento_core_config_data }}"
 
