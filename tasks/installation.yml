@@ -165,7 +165,7 @@
     path: "{{ item.dest }}"
     owner: "{{ magento_user }}"
     group: "{{ magento_group }}"
-    state: link
+    state: "{{ item.state | default('link') }}"
   with_items: "{{ magento_shared_folders }}"
 
 - name: "Reload the PHP runtime"
