@@ -32,7 +32,7 @@ magento_group: "www-data"
 
 ## The name for the service that executes magento. When the application is updated, the PHP runtime must be reset so that
 ## any data that's in the opcache.
-magento_php_service: "php7.0-fpm"
+magento_php_service: "php7.2-fpm"
 
 ## Whether or not to skip the release section of Magento 2. Note: THe configuration and env.php file will still be
 ## overrideen; just the installation itself will not be managed.
