@@ -34,7 +34,7 @@
 
 - name: "Get the magento filename from the storage path"
   set_fact:
-    magento_file_name: "{{ magento_storage_path | basename }}"
+    magento_storage_file_name: "{{ magento_storage_file_path | basename }}"
   when:
     - not magento_release_stat.stat.exists
     - magento_skip_release == False
@@ -47,6 +47,7 @@
   when:
     - not magento_release_stat.stat.exists
     - magento_skip_release == False
+
 - name: "Set the workdir for later tasks"
   set_fact:
     magento_workdir: "{{ tmpdir.path }}"
@@ -54,26 +55,12 @@
     - not magento_release_stat.stat.exists
     - magento_skip_release == False
 
-# The AWS S3 ansible role is deliberately not used, as it does not handle multipart uploads well.
-# See https://github.com/ansible/ansible/issues/5442
-#
-# This expects to authenticat based on the invokers AWS credentials, supplied through environment variables
 - name: "Download Magento release"
-  shell: |
-      AWS_ACCESS_KEY_ID="{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}" \
-      AWS_SECRET_ACCESS_KEY="{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}" \
-      aws s3 cp s3://{{ magento_bucket_name }}/{{ magento_storage_path }} {{ magento_workdir }} \
-        --cli-read-timeout 300 \
-        --cli-connect-timeout 0
-  args:
-    creates: "{{ magento_workdir }}/{{ magento_file_name }}"
-  when:
-    - not magento_release_stat.stat.exists
-    - magento_skip_release == False
+  include: "download-from/{{ magento_release_storage_provider }}.yml"
 
 - name: "Unpack the release"
   unarchive:
-    src: "{{ magento_workdir }}/{{ magento_file_name }}"
+    src: "{{ magento_workdir }}/{{ magento_storage_file_name }}"
     dest: "{{ magento_workdir }}"
     remote_src: true
   when:
@@ -82,7 +69,7 @@
 
 - name: "Clean up the downloaded archive"
   file:
-    path: "{{ magento_workdir }}/{{ magento_file_name }}"
+    path: "{{ magento_workdir }}/{{ magento_storage_file_name }}"
     state: "absent"
   when:
     - not magento_release_stat.stat.exists

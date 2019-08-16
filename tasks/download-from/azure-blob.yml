@@ -1,0 +1,16 @@
+---
+# This expects to authenticat based on the invokers Azure credentials, supplied through environment variables
+- name: "Download Magento release"
+  shell: |
+      AZURE_CLIENT_ID="{{ lookup('env','AZURE_CLIENT_ID') }}" \
+      AZURE_SECRET="{{ lookup('env','AZURE_SECRET') }}" \
+      AZURE_TENANT="{{ lookup('env','AZURE_TENANT') }}" \
+      AZURE_SUBSCRIPTION_ID="{{ lookup('env','AZURE_SUBSCRIPTION_ID') }}" \
+      AZURE_STORAGE_ACCOUNT="{{ lookup('env','AZURE_STORAGE_ACCOUNT') }}" \
+      AZURE_STORAGE_KEY="{{ lookup('env','AZURE_STORAGE_KEY') }}" \
+      az storage blob download --container-name="{{ lookup('env','AZURE_APP_RELEASES_BLOB_CONTAINER_NAME') }}" --file={{  magento_workdir  }}/{{ magento_storage_file_name }}  --name={{ magento_storage_file_path }}
+  args:
+    creates: "{{ magento_workdir }}/{{ magento_storage_file_name }}"
+  when:
+    - not magento_release_stat.stat.exists
+    - magento_skip_release == False
