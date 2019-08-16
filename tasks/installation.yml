@@ -142,7 +142,7 @@
 # var/sitewards/path/to/resource
 #
 # where "sitewards/path/to" does not exist.
-- name: "Ensure the destion container directories exist"
+- name: "Ensure the destination container directories exist"
   file:
     path: "{{ item.dest | dirname }}"
     state: "directory"
@@ -175,6 +175,20 @@
   when:
     - magento_release_updated.changed
     - magento_skip_release == False
+
+- name: "Check if Magento database exists"
+  shell:
+    cmd: |
+      mysql --user="{{ magento_config_db.username }}" --password="{{ magento_config_db.password }}" --database="{{ magento_config_db.name }}" --host="{{ magento_config_db.host }}" <<EOF
+        SHOW TABLES LIKE 'core_config_data';
+      EOF
+  register: magento_db_status
+
+- name: "Create the Magento database if missing"
+  become: "yes"
+  become_user: "{{ magento_user }}"
+  command: "/usr/bin/php {{ magento_app_root }}/bin/magento setup:db-schema:upgrade"
+  when: magento_db_status.stdout_lines|length == 0
 
 - name: "Perform any schema upgrades that are required"
   become: "yes"
