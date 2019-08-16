@@ -26,6 +26,12 @@
     disabled: "yes"
   with_items: "{{ magento_cron_tasks }}"
 
+- name: "Wait untill eventually running cron is finished"
+  become: "yes"
+  become_user: "{{ magento_user }}"
+  command: "flock /run/lock/{{ item.code }}.lock echo '{{ item.code }} has finished.'"
+  with_items: "{{ magento_cron_tasks }}"
+
 - name: "Get the magento filename from the storage path"
   set_fact:
     magento_file_name: "{{ magento_storage_path | basename }}"
@@ -41,7 +47,6 @@
   when:
     - not magento_release_stat.stat.exists
     - magento_skip_release == False
-
 - name: "Set the workdir for later tasks"
   set_fact:
     magento_workdir: "{{ tmpdir.path }}"

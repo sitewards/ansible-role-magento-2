@@ -279,3 +279,9 @@ magento_cache_types:
 ## and that content is successfully migrated. These commands are run every release, and are expected to be idempotent.
 magento_upgrade_commands:
   - "setup:upgrade --keep-generated"
+
+## In case you want to manage queue consumers separately - activate that
+## See https://magento.stackexchange.com/questions/285385/magento-2-3-2-ce-and-cron-jobs-flock-and-rabbitmq/285386#285386
+magento_run_message_queue_consumers_separately: false
+
+magento_queue_consumers_cron_template: "/usr/bin/php {{ magento_app_root }}/bin/magento queue:consumers:start {{ item.name }}"
