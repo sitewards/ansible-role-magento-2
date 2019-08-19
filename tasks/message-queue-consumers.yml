@@ -14,7 +14,8 @@
 - set_fact:
     magento_queue_consumers_list: "{{ magento_queue_consumers_list_wrapped|json_query('results[*].ansible_facts') }}"
 
-- debug:
+- name: "List message queue consumers that are going to be verified (i.e. installed or removed)"
+  debug:
     var: magento_queue_consumers_list
 
 - name: "Setup separate cron task for each magento message consumer"
