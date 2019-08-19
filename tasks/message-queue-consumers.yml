@@ -1,0 +1,32 @@
+---
+- name: "Get the list of magento message queue message consumers"
+  become: "yes"
+  become_user: "{{ magento_user }}"
+  command: "/usr/bin/php {{ magento_app_root }}/bin/magento queue:consumers:list"
+  register: magento_queue_consumers_list_output
+
+- set_fact:
+    code: "magento_mq_{{ item | regex_replace('[^A-Za-z]', '_') | lower }}"
+    name: "{{ item }}"
+  with_items: "{{ magento_queue_consumers_list_output.stdout_lines }}"
+  register: magento_queue_consumers_list_wrapped
+
+- set_fact:
+    magento_queue_consumers_list: "{{ magento_queue_consumers_list_wrapped|json_query('results[*].ansible_facts') }}"
+
+- name: "List message queue consumers that are going to be verified (i.e. installed or removed)"
+  debug:
+    var: magento_queue_consumers_list
+
+- name: "Setup separate cron task for each magento message consumer"
+  cron:
+    name: "Magento MQ Consumer:{{ item.code }}"
+    user: "{{ magento_user }}"
+    minute: "*"
+    hour: "*"
+    day: "*"
+    month: "*"
+    job: "{{ magento_cron_invoker }} {{ magento_queue_consumers_cron_template }}; {{ magento_cron_responder }}"
+    disabled: "{{ not magento_run_message_queue_consumers_separately }}"
+  with_items: "{{ magento_queue_consumers_list }}"
+
