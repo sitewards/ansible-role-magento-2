@@ -1,4 +1,9 @@
 ---
+## The name of the release storage provider (AWS S3 or Azure Blob Storage)
+## (required)
+magento_release_storage_provider: "aws-s3"
+#magento_release_storage_provider: "azure-blob"
+
 ## The AWS S3 bucket that contains the tarball releases of Magento
 ## (Required)
 # magento_bucket_name:
@@ -6,7 +11,7 @@
 ## The full path to the release in S3. For example, if the release is at "s3://foo-bar-bar/foo/bar.tar.gz", than the
 ## the full path is "foo/bar.tar.gz"
 ## (Required)
-# magento_storage_path:
+# magento_storage_file_path:
 
 ## The magento release folder. Contains the current set of releases
 ## (Required)
