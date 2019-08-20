@@ -1,0 +1,7 @@
+---
+- name: "Cleanup old clones"
+  become: "yes"
+  become_user: "{{ magento_user }}"
+  shell: "find {{ magento_release_folder }} -maxdepth 1 -mindepth 1  ! \\( -name \"{{ magento_release_version }}\" \\) -type d -printf '%T@:%p\n' | sort -r | tail --lines=+{{ magento_clones_to_keep }} | awk -F: '{ print $2 }' | xargs -t rm -rf ;"
+  when:
+    - magento_cleanup_old_clones == True
