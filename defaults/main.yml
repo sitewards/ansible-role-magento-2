@@ -294,6 +294,6 @@ magento_queue_consumers_cron_template: "/usr/bin/php {{ magento_app_root }}/bin/
 ## Deletes all installed deployable magento packages except the 
 ## %magento_clones_to_keep% amount of latest ones + all that are newer than
 ## %magento_clones_cleanup_min_age%
-magento_cleanup_old_clones: False
+magento_cleanup_old_clones: True
 magento_clones_to_keep: 5
 magento_clones_cleanup_min_age: "1d"
