@@ -1,7 +1,15 @@
 ---
-- name: "Cleanup old clones"
-  become: "yes"
-  become_user: "{{ magento_user }}"
-  shell: "find {{ magento_release_folder }} -maxdepth 1 -mindepth 1  ! \\( -name \"{{ magento_release_version }}\" \\) -type d -printf '%T@:%p\n' | sort -r | tail --lines=+{{ magento_clones_to_keep }} | awk -F: '{ print $2 }' | xargs -t rm -rf ;"
-  when:
-    - magento_cleanup_old_clones == True
+- name: "Discover old clone/release directories which need to be cleaned"
+  find:
+    paths: "{{ magento_release_folder }}"
+    age: "{{ magento_clones_cleanup_min_age }}"
+    file_type: directory
+    age_stamp: "ctime"
+  register: magento_clones_for_cleanup
+
+- name: "Remove old clones/releases"
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  when: magento_cleanup_old_clones == True
+  with_items: "{{ (magento_clones_for_cleanup.files | sort(attribute='ctime', reverse=True))[magento_clones_to_keep:] | list }}"
