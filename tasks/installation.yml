@@ -211,6 +211,11 @@
   become_user: "{{ magento_user }}"
   command: "/usr/bin/php {{ magento_app_root }}/bin/magento cache:flush"
 
+- name: "Let Magento indexer run"
+  become: "yes"
+  become_user: "{{ magento_user }}"
+  command: "/usr/bin/php {{ magento_app_root }}/bin/magento indexer:reindex"
+
 - name: "Disable maintenance mode"
   file:
     path: "{{ magento_release_folder }}/{{ magento_release_version }}/var/.maintenance.flag"
