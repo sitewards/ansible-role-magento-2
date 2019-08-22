@@ -3,4 +3,5 @@
 - include: "setup.yml"
 - include: "installation.yml"
 - include: "message-queue-consumers.yml"
+- include: "cleanup-old-clones.yml"
 - include: "admin.yml"
