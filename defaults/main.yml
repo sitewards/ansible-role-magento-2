@@ -297,3 +297,8 @@ magento_queue_consumers_cron_template: "/usr/bin/php {{ magento_app_root }}/bin/
 magento_cleanup_old_clones: True
 magento_clones_to_keep: 5
 magento_clones_cleanup_min_age: "1d"
+
+## Enforces indexer run on every deploy
+## by default indexer will run only in case database was created from scratch.
+## In case you need to refresh indexes on deploy (e.g. to fill search index) - set this to true.
+magento_force_reindex_on_deploy: False
