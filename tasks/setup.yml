@@ -4,8 +4,6 @@
   file:
     path: "{{ magento_release_folder }}"
     state: "directory"
-    recurse: "yes"
-    follow: no
     owner: "{{ magento_user }}"
     group: "{{ magento_group }}"
     mode: "u=rwx,g=rx,o=rx"
