@@ -221,7 +221,7 @@
   become: "yes"
   become_user: "{{ magento_user }}"
   command: "/usr/bin/php {{ magento_app_root }}/bin/magento websso:configure"
-  when: magento_sso_oauth_credentials == True
+  when: magento_sso_oauth_credentials is defind
 
 - name: "Disable maintenance mode"
   file:
