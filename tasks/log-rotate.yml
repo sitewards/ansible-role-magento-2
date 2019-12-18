@@ -1,0 +1,14 @@
+
+- name: Check if log rotation is installed
+  stat:
+    path: /etc/logrotate.d/
+  register: log_rotate_stats
+
+- name: Add logrotation for magento logs
+  template:
+    src: "logrotate.j2"
+    dest: "/etc/logrotate.d/magento2"
+    owner: "root"
+    group: "root"
+    mode: "u=rw,g=r,o=r"
+  when: log_rotate_stats.stat.isdir

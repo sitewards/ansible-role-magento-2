@@ -1,0 +1,9 @@
+{{ magento_app_root }}/var/log/*log {
+        weekly
+        rotate 12
+        missingok
+        notifempty
+        compress
+        delaycompress
+}
+
