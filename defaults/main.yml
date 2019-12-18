@@ -302,3 +302,16 @@ magento_clones_cleanup_min_age: "1d"
 ## by default indexer will run only in case database was created from scratch.
 ## In case you need to refresh indexes on deploy (e.g. to fill search index) - set this to true.
 magento_force_reindex_on_deploy: False
+
+## Set SSO Credentials
+#magento_sso_oauth_credentials:
+#  domain: '***'
+#  client_id: '****'
+#  client_secret: '***'
+
+## Set additional project specific configuration can be added
+#magento_additional_configuration: |
+#  here is your multiline content for env.php,
+#  and more
+#  and more
+#  and more
