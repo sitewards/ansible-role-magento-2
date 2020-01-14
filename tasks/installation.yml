@@ -98,6 +98,47 @@
     group: "{{ magento_group }}"
     mode: "u=rw,g=,o="
 
+- name: "Ensure the source content exists"
+  file:
+    path: "{{ item.src }}"
+    state: "{{ item.type | default('directory') }}"
+    owner: "{{ item.owner | default(magento_user) }}"
+    group: "{{ item.group | default(magento_group) }}"
+    mode: "{{ item.mode | default('755') }}"
+  with_items: "{{ magento_shared_folders }}"
+
+# This catches a condition in which the destionation path will be in a folder that currently does not exist. Symlinks
+# cannot be created in directories that do not exist yet. An example of this would be
+#
+# var/sitewards/path/to/resource
+#
+# where "sitewards/path/to" does not exist.
+- name: "Ensure the destination container directories exist"
+  file:
+    path: "{{ magento_release_folder }}/{{ magento_release_version }}/{{ item.dest | dirname }}"
+    state: "directory"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+  with_items: "{{ magento_shared_folders }}"
+  # We do not want to overwrite any resources that already exist (such as the symlink to /var/www/html). However, if
+  # the resource does not exist, we need to create it. Thus, we attempt its creation, but ignore failures.
+  failed_when: false
+
+- name: "Delete the destinations if they exist"
+  file:
+    path: "{{ magento_release_folder }}/{{ magento_release_version }}/{{ item.dest }}"
+    state: "absent"
+  with_items: "{{ magento_shared_folders }}"
+
+- name: "Ensure the symlinks for the shared content exist"
+  file:
+    src: "{{ item.src }}"
+    path: "{{ magento_release_folder }}/{{ magento_release_version }}/{{ item.dest }}"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    state: "{{ item.state | default('link') }}"
+  with_items: "{{ magento_shared_folders }}"
+
 - name: "Enable maintenance mode"
   file:
     path: "{{ magento_release_folder }}/{{ magento_release_version }}/var/.maintenance.flag"
@@ -118,48 +159,6 @@
   register: "magento_release_updated"
   when:
     - magento_skip_release == False
-
-- name: "Ensure the source content exists"
-  file:
-    path: "{{ item.src }}"
-    state: "{{ item.type | default('directory') }}"
-    owner: "{{ item.owner | default(magento_user) }}"
-    group: "{{ item.group | default(magento_group) }}"
-    mode: "{{ item.mode | default('755') }}"
-  with_items: "{{ magento_shared_folders }}"
-
-# This catches a condition in which the destionation path will be in a folder that currently does not exist. Symlinks
-# cannot be created in directories that do not exist yet. An example of this would be
-#
-# var/sitewards/path/to/resource
-#
-# where "sitewards/path/to" does not exist.
-- name: "Ensure the destination container directories exist"
-  file:
-    path: "{{ item.dest | dirname }}"
-    state: "directory"
-    owner: "{{ magento_user }}"
-    group: "{{ magento_group }}"
-  with_items: "{{ magento_shared_folders }}"
-  # We do not want to overwrite any resources that already exist (such as the symlink to /var/www/html). However, if
-  # the resource does not exist, we need to create it. Thus, we attempt its creation, but ignore failures.
-  failed_when: false
-
-- name: "Delete the destinations if they exist"
-  file:
-    path: "{{ item.dest }}"
-    state: "absent"
-  with_items: "{{ magento_shared_folders }}"
-
-- name: "Ensure the symlinks for the shared content exist"
-  file:
-    src: "{{ item.src }}"
-    path: "{{ item.dest }}"
-    owner: "{{ magento_user }}"
-    group: "{{ magento_group }}"
-    state: "{{ item.state | default('link') }}"
-  with_items: "{{ magento_shared_folders }}"
-
 - name: "Reload the PHP runtime"
   service:
     name: "{{ magento_php_service }}"
