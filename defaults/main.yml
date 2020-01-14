@@ -88,7 +88,8 @@ magento_cron_tasks:
 ## A list of folders that contain content that should persist through releases.
 magento_shared_folders: []
 ## Directories are defined in key -> value pairs, where the "src" is the directory that contains the content, and
-## "dest" is where it should exist in Magento. If the source directories do not exist, they are created.
+## "dest" is where it should exist in Magento. The dest is relative to to the release folder of magento.
+## If the source directories do not exist, they are created.
 #  - src:
 #    dest:
 ## State can be any of the ansible file states, but defaults to directory
