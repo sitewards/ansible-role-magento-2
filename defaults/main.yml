@@ -232,6 +232,8 @@ magento_x_frame_options: "SAMEORIGIN"
 #   database: 1
 #   password: ""
 #   compress_data: 1
+#   auto_expire_lifetime: 604800
+#   auto_expire_pattern: /^.*/
 
 # magento_cache_frontend_default_backend: Cm_Cache_Backend_Redis
 
@@ -242,6 +244,8 @@ magento_x_frame_options: "SAMEORIGIN"
 #   database: 0
 #   password: ""
 #   compress_data: "0"
+#   auto_expire_lifetime: 604800
+#   auto_expire_pattern: /^.*/
 
 ## The Varnish compatible hosts that are used to store the full page configuration
 ## This appears to be undocumented, though is set with the CLI initially
