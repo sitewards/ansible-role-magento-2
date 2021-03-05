@@ -232,6 +232,7 @@ magento_x_frame_options: "SAMEORIGIN"
 #   database: 1
 #   password: ""
 #   compress_data: 1
+#   compression_lib: "gzip"
 #   auto_expire_lifetime: 604800
 #   auto_expire_pattern: /^.*/
 
@@ -243,7 +244,8 @@ magento_x_frame_options: "SAMEORIGIN"
 #   port: 6379
 #   database: 0
 #   password: ""
-#   compress_data: "0"
+#   compress_data: 1
+#   compression_lib: "gzip"
 #   auto_expire_lifetime: 604800
 #   auto_expire_pattern: /^.*/
 
