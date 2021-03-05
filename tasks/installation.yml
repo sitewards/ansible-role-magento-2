@@ -181,13 +181,6 @@
   command: "/usr/bin/php {{ magento_app_root }}/bin/magento setup:db-schema:upgrade"
   when: magento_db_status.stdout_lines|length == 0
 
-- name: "Perform any schema upgrades that are required"
-  become: "yes"
-  become_user: "{{ magento_user }}"
-  # "--keep-generated" is used as it's the responsibility of the build environment to do the application compilation.
-  command: "/usr/bin/php {{ magento_app_root }}/bin/magento {{ item }}"
-  with_items: "{{ magento_upgrade_commands }}"
-
 - name: "Enforce core configuration data"
   shell:
     cmd: |
@@ -204,6 +197,13 @@
           ;
       EOF
   with_items: "{{ magento_core_config_data }}"
+
+- name: "Perform any schema upgrades that are required"
+  become: "yes"
+  become_user: "{{ magento_user }}"
+  # "--keep-generated" is used as it's the responsibility of the build environment to do the application compilation.
+  command: "/usr/bin/php {{ magento_app_root }}/bin/magento {{ item }}"
+  with_items: "{{ magento_upgrade_commands }}"
 
 - name: "Configure webSSO"
   become: "yes"
