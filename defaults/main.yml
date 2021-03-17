@@ -296,6 +296,10 @@ magento_upgrade_commands:
 ## See https://magento.stackexchange.com/questions/285385/magento-2-3-2-ce-and-cron-jobs-flock-and-rabbitmq/285386#285386
 magento_run_message_queue_consumers_separately: false
 
+## in case you don't want message queue consumers to wait for messages - change this to false
+## Changing it to false reduces server memory consuption but increases the waiting time for messages to be processed.
+magento_queue_consumers_wait_for_messages: true
+
 magento_queue_consumers_cron_template: "/usr/bin/php {{ magento_app_root }}/bin/magento queue:consumers:start {{ item.name }}"
 
 ## Deletes all installed deployable magento packages except the 
