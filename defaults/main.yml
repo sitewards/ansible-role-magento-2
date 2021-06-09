@@ -326,3 +326,13 @@ magento_force_reindex_on_deploy: False
 #  and more
 #  and more
 #  and more
+
+# allows to run deletion of old clones folders asynchronously,
+# this allows pipeline to finish faster due to "parallel" execution of tasks
+# when clones are cleaned up asynchronously, role is not checking successful execution
+magento_allow_async_cleanup_old_clones: false
+
+# allows to run magento reindexing asynchronously,
+# this allows pipeline to finish faster due to "parallel" execution of tasks
+# when reindexing is done asynchronously, role is not checking successful execution
+magento_allow_async_reindex: false
