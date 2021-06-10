@@ -7,9 +7,18 @@
     age_stamp: "ctime"
   register: magento_clones_for_cleanup
 
-- name: "Remove old clones/releases"
+- name: "Remove old clones/releases asynchronously"
   file:
     path: "{{ item.path }}"
     state: absent
-  when: magento_cleanup_old_clones == True
+  when: magento_cleanup_old_clones and magento_allow_async_cleanup_old_clones
+  with_items: "{{ (magento_clones_for_cleanup.files | sort(attribute='ctime', reverse=True))[magento_clones_to_keep:] | list }}"
+  async: "{{ magento_async_cleanup_old_clones_timeout }}"
+  poll: 0
+
+- name: "Remove old clones/releases synchronously"
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  when: magento_cleanup_old_clones and (not magento_allow_async_cleanup_old_clones)
   with_items: "{{ (magento_clones_for_cleanup.files | sort(attribute='ctime', reverse=True))[magento_clones_to_keep:] | list }}"
