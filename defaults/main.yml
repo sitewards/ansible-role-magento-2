@@ -332,7 +332,13 @@ magento_force_reindex_on_deploy: False
 # when clones are cleaned up asynchronously, role is not checking successful execution
 magento_allow_async_cleanup_old_clones: false
 
+# timeout for async old clones cleanup, seconds
+magento_async_cleanup_old_clones_timeout: 600
+
 # allows to run magento reindexing asynchronously,
 # this allows pipeline to finish faster due to "parallel" execution of tasks
 # when reindexing is done asynchronously, role is not checking successful execution
 magento_allow_async_reindex: false
+
+# timeout for async reindex execution, seconds
+magento_async_reindex_timeout: 600

@@ -13,7 +13,7 @@
     state: absent
   when: magento_cleanup_old_clones and magento_allow_async_cleanup_old_clones
   with_items: "{{ (magento_clones_for_cleanup.files | sort(attribute='ctime', reverse=True))[magento_clones_to_keep:] | list }}"
-  async: 600
+  async: "{{ magento_async_cleanup_old_clones_timeout }}"
   poll: 0
 
 - name: "Remove old clones/releases synchronously"

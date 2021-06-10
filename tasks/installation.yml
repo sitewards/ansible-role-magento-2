@@ -221,7 +221,7 @@
   become_user: "{{ magento_user }}"
   command: "/usr/bin/php {{ magento_app_root }}/bin/magento indexer:reindex"
   when: (magento_db_status.stdout_lines|length == 0 or magento_force_reindex_on_deploy == True) and magento_allow_async_reindex
-  async: 600
+  async: "{{ magento_async_reindex_timeout }}"
   poll: 0
 
 - name: "Let Magento indexer run synchronously"
