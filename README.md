@@ -5,7 +5,6 @@ It installs a version of Magento two from an S3 bucket in a minimal
 
 ## Limitations
 
-- It does not currently clean up old releases. This makes each release slower, due to a recursive chown
 - It is not hugely portable. It was open sourced as part of an effort to make it so
 - It requires infrastructure tailored in a particular format, which is currently undocumented.
 
