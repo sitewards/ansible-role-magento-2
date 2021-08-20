@@ -266,7 +266,9 @@ magento_cache_types:
   - {name: "collections",            enabled: 1}
   - {name: "reflection",             enabled: 1}
   - {name: "db_ddl",                 enabled: 1}
+  - {name: "compiled_config",        enabled: 1}
   - {name: "eav",                    enabled: 1}
+  - {name: "customer_notification",  enabled: 1}
   - {name: "full_page",              enabled: 1}
   - {name: "config_integration",     enabled: 1}
   - {name: "config_integration_api", enabled: 1}
