@@ -276,7 +276,7 @@ magento_cache_types:
   - {name: "translate",              enabled: 1}
   - {name: "config_webservice",      enabled: 1}
 
-## During the upgrade of Magneto, there are certain commands that must be run to ensure the database is up to date
+## During the upgrade of Magento, there are certain commands that must be run to ensure the database is up to date
 ## and that content is successfully migrated. These commands are run every release, and are expected to be idempotent.
 magento_upgrade_commands:
   - "setup:upgrade --keep-generated"
