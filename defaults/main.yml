@@ -260,32 +260,19 @@ magento_x_frame_options: "SAMEORIGIN"
 ## See http://devdocs.magento.com/guides/v2.1/config-guide/config/config-php.html
 ## (Optional)
 magento_cache_types:
-  - name: "config"
-    enabled: 1
-  - name: "layout"
-    enabled: 1
-  - name: "block_html"
-    enabled: 1
-  - name: "collections"
-    enabled: 1
-  - name: "reflection"
-    enabled: 1
-  - name: "db_ddl"
-    enabled: 1
-  - name: "eav"
-    enabled: 1
-  - name: "full_page"
-    enabled: 1
-  - name: "config_integration"
-    enabled: 1
-  - name: "config_integration_api"
-    enabled: 1
-  - name: "target_rule"
-    enabled: 1
-  - name: "translate"
-    enabled: 1
-  - name: "config_webservice"
-    enabled: 1
+  - {name: "config",                 enabled: 1}
+  - {name: "layout",                 enabled: 1}
+  - {name: "block_html",             enabled: 1}
+  - {name: "collections",            enabled: 1}
+  - {name: "reflection",             enabled: 1}
+  - {name: "db_ddl",                 enabled: 1}
+  - {name: "eav",                    enabled: 1}
+  - {name: "full_page",              enabled: 1}
+  - {name: "config_integration",     enabled: 1}
+  - {name: "config_integration_api", enabled: 1}
+  - {name: "target_rule",            enabled: 1}
+  - {name: "translate",              enabled: 1}
+  - {name: "config_webservice",      enabled: 1}
 
 ## During the upgrade of Magneto, there are certain commands that must be run to ensure the database is up to date
 ## and that content is successfully migrated. These commands are run every release, and are expected to be idempotent.
