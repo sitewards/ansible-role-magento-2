@@ -223,7 +223,7 @@ magento_session_save: "files"
 ## (Required)
 magento_x_frame_options: "SAMEORIGIN"
 
-# magento_cache_frontend_page_cache_backend: "Cm_Cache_Backend_Redis"
+# magento_cache_frontend_page_cache_backend: "\\Magento\\Framework\\Cache\\Backend\\Redis"
 
 ## (Required if magento_cache_frontend_page_cache_backend is used)
 # magento_cache_frontend_page_cache_backend_options:
