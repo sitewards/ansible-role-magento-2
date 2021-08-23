@@ -123,6 +123,7 @@ magento_mode: "default"
 #  password: ""
 #  host: ""
 #  name: ""
+#  port: ""
 
 ## The database connections that contain the Magento data that Magento accesses
 ## See http://devdocs.magento.com/guides/v2.0/config-guide/config/config-php.html

@@ -170,7 +170,7 @@
 - name: "Check if Magento database exists"
   shell:
     cmd: |
-      mysql --user="{{ magento_config_db.username }}" --password="{{ magento_config_db.password }}" --database="{{ magento_config_db.name }}" --host="{{ magento_config_db.host }}" <<EOF
+      mysql --user="{{ magento_config_db.username }}" --password="{{ magento_config_db.password }}" --database="{{ magento_config_db.name }}" --host="{{ magento_config_db.host }}" --port="{{ magento_config_db.port | default('3306') }}" <<EOF
         SHOW TABLES LIKE 'core_config_data';
       EOF
   register: magento_db_status
@@ -184,7 +184,7 @@
 - name: "Enforce core configuration data"
   shell:
     cmd: |
-      mysql --user="{{ magento_config_db.username }}" --password="{{ magento_config_db.password }}" --database="{{ magento_config_db.name }}" --host="{{ magento_config_db.host }}" <<EOF
+      mysql --user="{{ magento_config_db.username }}" --password="{{ magento_config_db.password }}" --database="{{ magento_config_db.name }}" --host="{{ magento_config_db.host }}" --port="{{ magento_config_db.port | default('3306') }}" <<EOF
         INSERT INTO core_config_data (path, scope, scope_id, value)
           VALUES (
              '{{ item.path }}',
